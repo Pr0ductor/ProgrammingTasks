@@ -47,6 +47,27 @@ public class GasStation
     }
 }
 
+class Student
+{
+    public int MathScore { get; set; }
+    public int RussianScore { get; set; }
+    public int InformaticsScore { get; set; }
+    public string LastName { get; set; }
+    public string Initials { get; set; }
+    public string SchoolNumber { get; set; }
+
+    public int TotalScore => MathScore + RussianScore + InformaticsScore;
+}
+
+
+class StudentGrade
+{
+    public int ClassNumber { get; set; }
+    public string Subject { get; set; }
+    public string LastName { get; set; }
+    public string Initials { get; set; }
+    public int Grade { get; set; }
+}
 
 public class Program
 {
@@ -172,20 +193,23 @@ public class Program
             new Debtor("Морозов", 1950.85, 116)
         };
 
-        var groupedDebtors = debtors.GroupBy(d => d.FlatNumber / 4);
-
-        foreach (var group in groupedDebtors)
-        {
-            Console.WriteLine($"Подъезд {group.Key + 1}");
-
-            var debtorsInGroup = group.OrderByDescending(d => d.DebtAmount).ToList();
-            int count = Math.Min(3, debtorsInGroup.Count);
-
-            for (int i = 0; i < count; i++)
+        debtors.GroupBy(d => d.FlatNumber / 4)
+            .Select(group => new
             {
-                Console.WriteLine($"{debtorsInGroup[i].DebtAmount:F2} руб., квартира {debtorsInGroup[i].FlatNumber}, {debtorsInGroup[i].LastName}");
-            }
-        }
+                Podjezd = group.Key + 1,
+                TopDebtors = group.OrderByDescending(d => d.DebtAmount).Take(3)
+            })
+            .ToList()
+            .ForEach(group =>
+            {
+                Console.WriteLine($"Подъезд {group.Podjezd}");
+
+                group.TopDebtors.ToList().ForEach(debtor =>
+                {
+                    Console.WriteLine(
+                        $"{debtor.DebtAmount:F2} руб., квартира {debtor.FlatNumber}, {debtor.LastName}");
+                });
+            });
 
         Console.WriteLine("------------------");
         
@@ -223,8 +247,71 @@ public class Program
         Console.WriteLine("---------------");
         
         //55
+        // Создание списка учащихся с данными
+        List<Student> students = new List<Student>
+        {
+            new Student { LastName = "Иванов", Initials = "И.И.", SchoolNumber = "123", MathScore = 70, RussianScore = 80, InformaticsScore = 60 },
+            new Student { LastName = "Петров", Initials = "П.П.", SchoolNumber = "456", MathScore = 55, RussianScore = 65, InformaticsScore = 70 },
+            new Student { LastName = "Сидоров", Initials = "С.С.", SchoolNumber = "789", MathScore = 80, RussianScore = 75, InformaticsScore = 85 }
+        };
         
+        var selectedStudents = students.Where(s =>
+                s.MathScore >= 50 && s.RussianScore >= 50 && s.InformaticsScore >= 50)
+            .OrderBy(s => s.LastName)
+            .ThenBy(s => s.Initials);
+
+        // Выводим результаты
+        if (selectedStudents.Any())
+        {
+            foreach (var student in selectedStudents)
+            {
+                Console.WriteLine($"{student.LastName} {student.Initials}, {student.SchoolNumber}, " +
+                                  $"Суммарный балл ЕГЭ: {student.TotalScore}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Требуемые учащиеся не найдены");
+        }
+
+
+        Console.WriteLine("--------------------");
+        //67
         
-        
+        // Создание списка учащихся с оценками
+        List<StudentGrade> studentGrades = new List<StudentGrade>
+        {
+            new StudentGrade { ClassNumber = 10, Subject = "Алгебра", LastName = "Иванов", Initials = "И.И.", Grade = 4 },
+            new StudentGrade { ClassNumber = 10, Subject = "Геометрия", LastName = "Иванов", Initials = "И.И.", Grade = 5 },
+            new StudentGrade { ClassNumber = 10, Subject = "Информатика", LastName = "Иванов", Initials = "И.И.", Grade = 2 },
+            new StudentGrade { ClassNumber = 11, Subject = "Алгебра", LastName = "Петров", Initials = "П.П.", Grade = 3 },
+            new StudentGrade { ClassNumber = 11, Subject = "Геометрия", LastName = "Петров", Initials = "П.П.", Grade = 2 },
+            new StudentGrade { ClassNumber = 11, Subject = "Информатика", LastName = "Петров", Initials = "П.П.", Grade = 5 },
+            new StudentGrade { ClassNumber = 11, Subject = "Информатика", LastName = "Коля", Initials = "К.К.", Grade = 2 },
+            new StudentGrade { ClassNumber = 11, Subject = "Информатика", LastName = "Коля", Initials = "К.К.", Grade = 2 }
+        };
+
+        var result5 = studentGrades
+            .Where(student => student.Grade == 2)
+            .GroupBy(student => new { student.ClassNumber, student.LastName, student.Initials })
+            .OrderByDescending(group => group.Key.ClassNumber)
+            .ThenBy(group => group.Key.LastName)
+            .ThenBy(group => group.Key.Initials)
+            .Select(group => $"{group.Key.ClassNumber} {group.Key.LastName} {group.Key.Initials} {group.Count()}");
+
+        if (result5.Any())
+        {
+            foreach (var item in result5)
+            {
+                Console.WriteLine(item);
+            }
+        }
+        else
+        {
+            Console.WriteLine("Требуемые учащиеся не найдены");
+        }
+
+
+
     }
 }
