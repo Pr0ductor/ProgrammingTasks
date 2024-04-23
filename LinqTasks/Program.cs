@@ -69,6 +69,21 @@ class StudentGrade
     public int Grade { get; set; }
 }
 
+class DItem
+{
+    public string StoreName { get; set; }
+    public int Price { get; set; }
+    public string Article { get; set; }
+}
+
+class EItem
+{
+    public string ConsumerCode { get; set; }
+    public string Article { get; set; }
+    public string StoreName { get; set; }
+}
+
+
 public class Program
 {
     public static void Main()
@@ -311,7 +326,39 @@ public class Program
             Console.WriteLine("Требуемые учащиеся не найдены");
         }
 
+        Console.WriteLine("-------------------");
+        
+        //79
+        List<DItem> D = new List<DItem>
+        {
+            new DItem { StoreName = "МагазинА", Price = 100, Article = "123456" },
+            new DItem { StoreName = "МагазинБ", Price = 200, Article = "654321" },
+        };
 
+        List<EItem> E = new List<EItem>
+        {
+            new EItem { ConsumerCode = "123456", Article = "Артикул1", StoreName = "МагазинА" },
+            new EItem { ConsumerCode = "654321", Article = "Артикул2", StoreName = "МагазинБ" },
+            new EItem { ConsumerCode = "654321", Article = "Артикул3", StoreName = "МагазинБ" },
+        };
+        
+        var purchases = D.SelectMany(d => E.Where(e => e.StoreName == d.StoreName) //сопоставляем D и E
+                .GroupBy(e => e.ConsumerCode)
+                .Select(g => new
+                {
+                    Store = d.StoreName,
+                    ConsumerCode = g.Key,
+                    TotalPrice = g.Sum(e => d.Price)
+                })) // находим сумму
+            .OrderBy(p => p.Store)
+            .ThenBy(p => p.ConsumerCode)
+            .Select(p => $"{p.Store} {p.ConsumerCode} {p.TotalPrice}");
+        
+        foreach (var purchase in purchases)
+        {
+            Console.WriteLine(purchase);
+        }
 
+        Console.WriteLine("-------------------");
     }
 }
